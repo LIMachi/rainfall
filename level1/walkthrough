@@ -1,0 +1,24 @@
+(gdb) p system
+$1 = {<text variable, no debug info>} 0x8048360 <system@plt>
+
+(gdb) p exit
+No symbol table is loaded.  Use the "file" command.
+
+(gdb) info registers
+eax            0xbffff6f0       -1073744144
+ecx            0xbffff7d4       -1073743916
+edx            0xbffff764       -1073744028
+ebx            0xb7fd0ff4       -1208152076
+esp            0xbffff6e0       0xbffff6e0
+ebp            0xbffff738       0xbffff738
+esi            0x0      0
+edi            0x0      0
+eip            0x8048490        0x8048490 <main+16>
+eflags         0x200282 [ SF IF ID ]
+cs             0x73     115
+ss             0x7b     123
+ds             0x7b     123
+es             0x7b     123
+fs             0x0      0
+gs             0x33     51
+
