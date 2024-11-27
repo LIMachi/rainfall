@@ -1,0 +1,8 @@
+p <name>: find function position
+disas: disassemble
+x/<size>x <addr/reg expr>: hexdump of <size> bytes pointed by <addr/reg expr> (ex: x/40x $sp -> show the 40 bytes after the address pointed by sp)
+set disassembly-flavor intel/at: change the disassembler syntax between intel/at&t (gdb defaults to at&t)
+b <name>/*<addr>: set a breakpoint at this function/address
+r/c: run/continue
+d <name>/<addr>/?: disable a/all breakpoint
+info registers: show the state of all registers

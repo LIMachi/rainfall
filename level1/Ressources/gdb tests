@@ -1,0 +1,11 @@
+b main
+r
+disas (instruction +3)
+info registers (eax 1, ebp 0xbffff728, esp 0xbffff728)
+si
+info registers (eax 1, ebp 0xbffff728, esp 0xbffff720) (equivalent to reserving 16 bytes on the stack)
+si
+info registers (eax 1, ebp 0xbffff728, esp 0xbffff6d0) (equivalent to reserving an extra 80 bytes on the stack)
+x/58x $esp-0x56
+b *0x08048495
+c
