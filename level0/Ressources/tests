@@ -1,0 +1,36 @@
+`ssh -p 4242 level0@192.168.56.106`
+on first ssh connection, we get a prompt:
+`
+   GCC stack protector support:            Enabled
+   Strict user copy checks:                Disabled
+   Restrict /dev/mem access:               Enabled
+   Restrict /dev/kmem access:              Enabled
+   grsecurity / PaX: No GRKERNSEC
+   Kernel Heap Hardening: No KERNHEAP
+  System-wide ASLR (kernel.randomize_va_space): Off (Setting: 0)
+ RELRO           STACK CANARY      NX            PIE             RPATH      RUNPATH      FILE
+ No RELRO        No canary found   NX enabled    No PIE          No RPATH   No RUNPATH   /home/user/level0/level0
+`
+ls shows a single exec: level0
+nm/strings on level0 returns: `Input/output error`
+executing level0 segfaults
+random string as input of level0 gives: `No !`
+a quick google of `nm Input/output error` seem to mean that the storage is not in a valid state
+with a secondary terminal, I will try to scp the level0 to my computer to try to run nm/strings again
+`scp -P 4242 level0@192.168.56.106:/home/user/level0/level0 /tmp/level0`
+nm /tmp/level0 and strings /tmp/level0 does work :)
+`strings /tmp/level0 > ./level0/Ressources/strings`
+`nm /tmp/level0 > ./level0/Ressources/nm`
+`objdump -S /tmp/level0 > ./level0/Ressources/objdump`
+testing dogbolt (https://dogbolt.org) to see if we get something somewhat readable (otherwise we will use gdb)
+only snowman seem to work (all other decompilers ran out of time), and the file generated is a whooping 9.76 MB!
+by searching "No !", we reach line 190601
+and above we can see an atoi(v2) tested against 0x1a7 (423)
+if we try to understand v2, we see that is initialized with a value that comes from nowhere (or at least the decompiler did not understand the compiled code), for now I will try to input "423" into level0
+well... it worked, got a shell running
+I will still try to use gdb because the execv line is not really clear (does some trickery with pointers)
+`gdb /tmp/level0`
+`r` (we do a dry run first because gdb did not find main the first time)
+`b main`
+`r` (need to confirm the restart)
+`disas`
