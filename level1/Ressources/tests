@@ -1,0 +1,13 @@
+`su level1`
+<flag level0>
+nm/strings fail, objdump does work (kinda)
+we can see that the main is extremely short (to the point that it is padded with no-op)
+and consist of mainly a call to get@plt
+let's copy the exec on our computer once again
+`scp -P 4242 level1@192.168.56.106:/home/user/level1/level1 /tmp/level1`
+run dogbolt (this time we have a bunch of results from the decompilers)
+most of the decompiler are telling us that gets(char *s) is used, and the buffer used is sp - 68 (or an offset of 68 from the stack pointer)
+let's test the exec with a long line of chars (above 68) to see if something breaks
+`./level1`
+`01234567890123456789012345678901234567890123456789012345678901234567890123456789`
+we do get a segfault with 80 chars!
