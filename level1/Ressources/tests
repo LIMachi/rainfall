@@ -11,3 +11,7 @@ let's test the exec with a long line of chars (above 68) to see if something bre
 `./level1`
 `01234567890123456789012345678901234567890123456789012345678901234567890123456789`
 we do get a segfault with 80 chars!
+thanks to gdb, we managed to see the state of the stack pointer and instruction pointer, and after some tinkering we found a way to force the final ret to point to run()
+(run is a function we missed the first time but does give an access to /bin/sh)
+we did run into an issue when trying to repeat the exploit outside of gdb using a payload (because piping the payload inside level1 prevented /bin/sh to receive any command, as the stdin was returning end of files since the payload was totaly consumed)
+but after some googling we did found that adding a `-` before the pipe gave us a prompt (my understanding is that `-` means that the stdin is not pointing to the payload, but instead is loaded with payload but still accessible)
