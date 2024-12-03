@@ -1,6 +1,6 @@
 #include <unistd.h>
 
-//gcc script.c && ./a.out > payload && scp -P 4242 payload level2@192.168.56.102:/tmp/payload
+//gcc script.c && ./a.out > payload && scp -P 4242 payload level2@192.168.56.102:/tmp/payload2
 //53a4a712787f40ec66c3c26c1f4b164dcad5552b038bb0addd69bf5bf6fa8e77
 //gdb ./level2
 //b p

