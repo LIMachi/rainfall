@@ -9,7 +9,7 @@ char *p() {
     //push %ebp: store return address on the stack (convention of function start)
     //mov %esp,%ebp: use ebp to hold the previous state of the stack (for easy cleanup)
     void* check = (void*)&check; //note: all the decompilers seem to see this var as being used uninitialized, but my theory is that it represents a position in the stack
-    char buff[80]; //sub    $0x68,%esp reserve 0x68 (104) bytes from the stack to store the local variables of the function, dogbolt seem to estimate that only 76 of those bytes are for this array, but like the previous exercises further testing in gdb shows we actually can use up to 80
+    char buff[76]; //sub    $0x68,%esp reserve 0x68 (104) bytes from the stack to store the local variables of the function, dogbolt seem to estimate that only 76 of those bytes are for this array (see how -0x4c(%ebp),%eax is used to generate the pointer passed to gets, 0x4c is 76)
 
     fflush(stdout); //update stdout (not sure why)
     gets(buff); //first line of man for gets: "Never use this function.", now we know why :P

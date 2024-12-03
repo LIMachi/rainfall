@@ -1,3 +1,7 @@
 .idea
+.clion
 nohup.out
 *.out
+tmp/*
+venv
+*.o

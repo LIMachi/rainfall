@@ -1,0 +1,7 @@
+same steps as before (we scp the exec to run dogbolt on it)
+once again we have a dubious usage of gets, so trying a stack smash seem the likely solution
+trying the same technic as before has one caveat though:
+this time the program checks if we have manipulated the stack where ebp was stored
+(mov    -0xc(%ebp),%eax, and    $0xb0000000,%eax, cmp    $0xb0000000,%eax)
+(the check seem to only look at some bits on the left of the address: 10110000000000000000000000000000)
+so the solution would be to generate a smash that points in a valid space
