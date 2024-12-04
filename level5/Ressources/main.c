@@ -6,6 +6,11 @@
 //let's have a quick look to objdump to see how the stack and other pointers are used before exit:
 //we have a movl setting the return value to 1, then a relative immediate call to the function 'exit'...
 //ok, this time I'm clueless, because I don't see an obvious usage of memory from the stack or heap
+//*sponge bob narator voice* eventually
+//we found an interesting site while searching exploits using printf: https://ctf101.org/binary-exploitation/what-is-a-format-string-vulnerability/
+//and one thing caught our eyes: the explanation about GOT (also something weird in the disassembled binary that could have tipped us off was the fact that exit was called as a function and not the interrupt 0x20 with syscall 1)
+//I think we can point the plt function exit to o using the same exploit as the previous level (writing the address of o in the plt where exit should be)
+//because the first site only mention the GOT attack but skips some details, we ended up finding another paper about this exploit here: https://www.exploit-db.com/papers/13203
 
 void o() {
     system("/bin/sh");
