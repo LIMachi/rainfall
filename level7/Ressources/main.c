@@ -8,7 +8,8 @@
 //since c contains our target only AFTER the strcpy, the most probable solution is to reuse the trick in level5 where we replaced a reference to exit with a ref to o
 //now to find the how (the fact that we have 2 strcpy with locations on the heap seem promising)
 
-char c[68]; //since the fgets used expect a size of 68, I hope the size was indeed 68
+char c[68]; //searched how to get the size and found: https://stackoverflow.com/questions/75949454/nm-reports-different-sizes-for-variables-of-the-same-type-how-do-i-find-out-t
+//nm give us: 00000050, so 80 (including padding), but since fgets uses a size of 68, I put a size of 68 (if padded to be aligned to 16 bytes, would result in an effective size of 80)
 
 int m() {
 	time_t t;
