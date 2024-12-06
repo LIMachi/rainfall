@@ -41,6 +41,6 @@ int main() {
 	//*((intOrPtr*)( *((intOrPtr*)( *_v24))))();
 
 	//the first two make me think of the operators we just declared
-	//running ./level9; echo $? gives us 1, so probably the - operator?
-	return n2 - n1;
+	//running ./level9 test; echo $? gives us 11, so probably the + operator?
+	return n2 + n1;
 }
