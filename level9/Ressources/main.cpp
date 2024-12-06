@@ -7,31 +7,40 @@ class N { //the total size of the class might be 108? (because of new having a s
 	int value; //angr seem to suggest that this class has 2 values, 1 of type int and one of type char*
 	char[104] annotation; //the order of those values is unclear, because sometimes they are accessed by negative offset to the stack, and sometimes relative to each other with a positive offset
 
-	N(int value) {
-		this.value = value;
+public:
+	N(int v) {
+		value = v;
 		//binary ninja and ghidra suggest that value is stored at offset 0x68 (104) in the class
 	}
 
 	char* setAnnotation(char *arg) { //ghidra prototypes this as: N::setAnnotation(N *this,char *param_1), and the memcpy is memcpy(this + 4,param_1,__n), this suggest that annotation is second in memory, after value
 		return memcpy(this->annotation, arg, strlen(arg));
 	}
+
+	int operator+(N& p) {
+		return p.value + this->value;
+	}
+
+	int operator-(N& p) {
+		return this->value - p.value;
+	}
 };
 
-int operator+(N const& lhs, N const& rhs) {
-	return lhs.value + rhs.value;
-}
-
-int operator-(N const& lhs, N const& rhs) {
-	return lhs.value - rhs.value;
-}
-
 int main() {
-	N n1;
-	N n2;
-
 	if (argc <= 1)
 		_exit(1);
-	n1 = new N(5);
-	n2 = new N(6);
-	return n1.setAnnotation(argv[1]);
+
+	N n1 = new N(5);
+	N n2 = new N(6);
+
+	n1.setAnnotation(argv[1]);
+	//all the decompilers are showing random pointer manipulations:
+	//return *(v0)->field_0(v0, v1);
+	//return (**eax_1)(eax_1, eax);
+	//(*(code *)**(undefined4 **)this_00)(this_00,this);return;
+	//*((intOrPtr*)( *((intOrPtr*)( *_v24))))();
+
+	//the first two make me think of the operators we just declared
+	//running ./level9; echo $? gives us 1, so probably the - operator?
+	return n2 - n1;
 }
