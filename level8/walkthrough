@@ -1,0 +1,9 @@
+see the source for a better explanation of what happens.
+
+run ./level8
+
+auth anything
+service0123456789012345
+login
+
+cat /home/user/level9/.pass

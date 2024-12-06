@@ -42,3 +42,8 @@ void main() {
 //we also have a strdup that allow us to use an unknown amount of memory
 //finally, the check for accessing system is in unknown allocation teritory (since auth was malloc'ed with 4 bytes and auth shouldn't have been copied with more than 30 chars)
 //time to check all the alocation with gdb, but the most probable is some sort of overflow of the service variable writing something at auth[32] (if the allocations are in the correct order)
+
+//actually never mind, the program shows us the pointers auth and service at each input, so we don't even need gdb
+//the first alocation is always at 0x804a008 (we've seen this address a few times already), no matter the size
+//the next alocation depends on the size of the previous one (but not for auth, since the malloc used is always of size 4)
+//running multiple auth increment the address by 16 (0x10), so to get the 32nd byte of auth we need a service of at least 16 bytes
