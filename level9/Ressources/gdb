@@ -1,3 +1,163 @@
 b main
-r
+r test
 disas
+b *0x08048610 (after _exit(1))
+c
+si
+info registers (esp = 0xbffff700, ebp = 0xbffff728)
+si
+disas (we are in new for the first class)
+si
+si
+disas ("No function contains program counter for selected frame.")
+b *0x804861c (after new)
+c
+disas
+info registers (eax = 0x804a008, first allocation)
+x/16x 0x804a008 (empty)
+x/16x $esp (first value is still 0x6c)
+si 4
+disas:
+
+Dump of assembler code for function _ZN1NC2Ei:
+=> 0x080486f6 <+0>:     push   %ebp
+   0x080486f7 <+1>:     mov    %esp,%ebp
+   0x080486f9 <+3>:     mov    0x8(%ebp),%eax
+   0x080486fc <+6>:     movl   $0x8048848,(%eax)
+   0x08048702 <+12>:    mov    0x8(%ebp),%eax
+   0x08048705 <+15>:    mov    0xc(%ebp),%edx
+   0x08048708 <+18>:    mov    %edx,0x68(%eax)
+   0x0804870b <+21>:    pop    %ebp
+   0x0804870c <+22>:    ret
+End of assembler dump.
+
+x/16x $esp
+0xbffff6fc:     0x0804862e      0x0804a008      0x00000005      0xbffff7d0
+0xbffff70c:     0xb7d79e55      0xb7fed280      0x00000000      0x08048779
+0xbffff71c:     0xb7eebff4      0x08048770      0xb7eebff4      0x00000000
+0xbffff72c:     0xb7d604d3      0x00000002      0xbffff7c4      0xbffff7d0
+
+we recognize the 2nd and 3rd value (the position of our class, and the parameter 5), and the first is our way back to main
+
+b *0x0804862e
+c
+x/16x 0x804a008
+0x804a008:      0x08048848      0x00000000      0x00000000      0x00000000
+...
+
+only contains the value pushed: 0x080486fc <+6>:     movl   $0x8048848,(%eax)
+
+x/16x 0x08048848
+
+x/16x 0x08048848
+0x8048848 <_ZTV1N+8>:   0x0804873a      0x0804874e      0x00004e31      0x08049b88
+0x8048858 <_ZTI1N+4>:   0x08048850      0x3b031b01      0x00000060      0x0000000b
+0x8048868:      0xfffffc44      0x0000007c      0xfffffd98      0x00000120
+0x8048878:      0xfffffe3e      0x00000144      0xfffffe7e      0x00000164
+
+ok, I'm kind of lost as to where and how the values of our class are stored
+
+b *0x08048650
+c
+disas
+
+b *0x08048677
+c
+disas
+info registers (eax = 0x804a008, esp = 0xbffff700)
+x/16x $esp
+0xbffff700:     0x0804a008      0xbffff903      0xbffff7d0      0xb7d79e55
+0xbffff710:     0x0804a078      0x0804a008      0x0804a078      0x0804a008
+0xbffff720:     0x08048770      0xb7eebff4      0x00000000      0xb7d604d3
+0xbffff730:     0x00000002      0xbffff7c4      0xbffff7d0      0xb7fdc860
+
+x/16x 0xbffff903
+0xbffff903:     0x74736574      0x45485300      0x2f3d4c4c      0x2f6e6962
+0xbffff913:     0x68736162      0x52455400      0x74783d4d      0x2d6d7265
+0xbffff923:     0x63363532      0x726f6c6f      0x48535300      0x494c435f
+0xbffff933:     0x3d544e45      0x2e323931      0x2e383631      0x312e3635
+
+si
+disas
+
+Dump of assembler code for function _ZN1N13setAnnotationEPc:
+=> 0x0804870e <+0>:     push   %ebp
+   0x0804870f <+1>:     mov    %esp,%ebp
+   0x08048711 <+3>:     sub    $0x18,%esp
+   0x08048714 <+6>:     mov    0xc(%ebp),%eax             #position of argv[1] in the stack probably
+   0x08048717 <+9>:     mov    %eax,(%esp)
+   0x0804871a <+12>:    call   0x8048520 <strlen@plt>
+   0x0804871f <+17>:    mov    0x8(%ebp),%edx             #this was there all along
+   0x08048722 <+20>:    add    $0x4,%edx                  #offset equivalent to this->annotation
+   0x08048725 <+23>:    mov    %eax,0x8(%esp)
+   0x08048729 <+27>:    mov    0xc(%ebp),%eax
+   0x0804872c <+30>:    mov    %eax,0x4(%esp)
+   0x08048730 <+34>:    mov    %edx,(%esp)
+   0x08048733 <+37>:    call   0x8048510 <memcpy@plt>
+   0x08048738 <+42>:    leave
+   0x08048739 <+43>:    ret
+End of assembler dump.
+
+si 4
+info registers (eax = 0xbffff903, ebp = 0xbffff6f8)
+x/s 0xbffff903 -> "test"
+p $ebp + 8 -> 0xbffff700
+x/16x 0xbffff700
+0xbffff700:     0x0804a008      0xbffff903      0xbffff7d0      0xb7d79e55
+0xbffff710:     0x0804a078      0x0804a008      0x0804a078      0x0804a008
+0xbffff720:     0x08048770      0xb7eebff4      0x00000000      0xb7d604d3
+0xbffff730:     0x00000002      0xbffff7c4      0xbffff7d0      0xb7fdc860
+
+x/32x 0x0804a008
+0x804a008:      0x08048848      0x00000000      0x00000000      0x00000000
+0x804a018:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a028:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a038:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a048:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a058:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a068:      0x00000000      0x00000000      0x00000005      0x00000071
+0x804a078:      0x08048848      0x00000000      0x00000000      0x00000000
+
+I might have misinterpreted the layout of the memory in the disassembly:
+the first word seem to be a pointer of some kind and was hard coded in the constructor of N, it might be the vtable or something equivalent (a reference to all the methods declared by this object)
+the following 0 are the uninitialized string, and the 5 is our value!
+the offset to 5 should be 4 (vtable) + sizeof (annotation), by counting the 0 we find a size of annotation of 100
+
+p 0x0804a008 + 104 (100 of annotation and 4 of vtable) -> 134520944
+
+x 134520944 -> 0x804a070:      0x00000005
+
+x/16x 0x08048848
+0x8048848 <_ZTV1N+8>:   0x0804873a      0x0804874e      0x00004e31      0x08049b88
+0x8048858 <_ZTI1N+4>:   0x08048850      0x3b031b01      0x00000060      0x0000000b
+0x8048868:      0xfffffc44      0x0000007c      0xfffffd98      0x00000120
+0x8048878:      0xfffffe3e      0x00000144      0xfffffe7e      0x00000164
+
+x/32i 0x0804873a
+
+   0x804873a <_ZN1NplERS_>:     push   %ebp
+   0x804873b <_ZN1NplERS_+1>:   mov    %esp,%ebp
+   0x804873d <_ZN1NplERS_+3>:   mov    0x8(%ebp),%eax
+   0x8048740 <_ZN1NplERS_+6>:   mov    0x68(%eax),%edx
+   0x8048743 <_ZN1NplERS_+9>:   mov    0xc(%ebp),%eax
+   0x8048746 <_ZN1NplERS_+12>:  mov    0x68(%eax),%eax
+   0x8048749 <_ZN1NplERS_+15>:  add    %edx,%eax
+   0x804874b <_ZN1NplERS_+17>:  pop    %ebp
+   0x804874c <_ZN1NplERS_+18>:  ret
+   0x804874d:   nop
+   0x804874e <_ZN1NmiERS_>:     push   %ebp
+   0x804874f <_ZN1NmiERS_+1>:   mov    %esp,%ebp
+   0x8048751 <_ZN1NmiERS_+3>:   mov    0x8(%ebp),%eax
+   0x8048754 <_ZN1NmiERS_+6>:   mov    0x68(%eax),%edx
+   0x8048757 <_ZN1NmiERS_+9>:   mov    0xc(%ebp),%eax
+   0x804875a <_ZN1NmiERS_+12>:  mov    0x68(%eax),%eax
+   0x804875d <_ZN1NmiERS_+15>:  mov    %edx,%ecx
+   0x804875f <_ZN1NmiERS_+17>:  sub    %eax,%ecx
+   0x8048761 <_ZN1NmiERS_+19>:  mov    %ecx,%eax
+   0x8048763 <_ZN1NmiERS_+21>:  pop    %ebp
+   0x8048764 <_ZN1NmiERS_+22>:  ret
+   0x8048765:   nop
+   ...
+
+this looks a lot like the operators + and - :)
+(and also explains the pointer manipulation at the end of main)
