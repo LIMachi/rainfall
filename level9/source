@@ -1,0 +1,32 @@
+class N {
+	int value;
+	char[104] annotation;
+
+public:
+	N(int v) {
+		value = v;
+	}
+
+	char* setAnnotation(char *arg) {
+		return memcpy(this->annotation, arg, strlen(arg));
+	}
+
+	int operator+(N& p) {
+		return p.value + this->value;
+	}
+
+	int operator-(N& p) {
+		return this->value - p.value;
+	}
+};
+
+int main() {
+	if (argc <= 1)
+		_exit(1);
+
+	N n1 = new N(5);
+	N n2 = new N(6);
+
+	n1.setAnnotation(argv[1]);
+	return n2 + n1;
+}
