@@ -1,0 +1,20 @@
+
+../../tmp/level8:     file format elf32-i386
+
+DYNAMIC RELOCATION RECORDS
+OFFSET   TYPE              VALUE 
+08049a28 R_386_GLOB_DAT    __gmon_start__
+08049a80 R_386_COPY        stdin@@GLIBC_2.0
+08049aa0 R_386_COPY        stdout@@GLIBC_2.0
+08049a38 R_386_JUMP_SLOT   printf@GLIBC_2.0
+08049a3c R_386_JUMP_SLOT   free@GLIBC_2.0
+08049a40 R_386_JUMP_SLOT   strdup@GLIBC_2.0
+08049a44 R_386_JUMP_SLOT   fgets@GLIBC_2.0
+08049a48 R_386_JUMP_SLOT   fwrite@GLIBC_2.0
+08049a4c R_386_JUMP_SLOT   strcpy@GLIBC_2.0
+08049a50 R_386_JUMP_SLOT   malloc@GLIBC_2.0
+08049a54 R_386_JUMP_SLOT   system@GLIBC_2.0
+08049a58 R_386_JUMP_SLOT   __gmon_start__
+08049a5c R_386_JUMP_SLOT   __libc_start_main@GLIBC_2.0
+
+

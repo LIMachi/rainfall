@@ -1,0 +1,46 @@
+08049960 d _DYNAMIC
+08049a2c d _GLOBAL_OFFSET_TABLE_
+0804880c 00000004 R _IO_stdin_used
+         w _Jv_RegisterClasses
+08049950 d __CTOR_END__
+0804994c d __CTOR_LIST__
+08049958 D __DTOR_END__
+08049954 d __DTOR_LIST__
+08048948 r __FRAME_END__
+0804995c d __JCR_END__
+0804995c d __JCR_LIST__
+08049a68 A __bss_start
+08049a60 D __data_start
+080487c0 t __do_global_ctors_aux
+080484e0 t __do_global_dtors_aux
+08049a64 D __dso_handle
+         w __gmon_start__
+080487b2 T __i686.get_pc_thunk.bx
+0804994c d __init_array_end
+0804994c d __init_array_start
+080487b0 00000002 T __libc_csu_fini
+08048740 00000061 T __libc_csu_init
+         U __libc_start_main@@GLIBC_2.0
+08049a68 A _edata
+08049ab4 A _end
+080487ec T _fini
+08048808 00000004 R _fp_hw
+080483c4 T _init
+080484b0 T _start
+08049aac 00000004 B auth
+08049aa4 00000001 b completed.6159
+08049a60 W data_start
+08049aa8 00000004 b dtor_idx.6161
+         U fgets@@GLIBC_2.0
+08048540 t frame_dummy
+         U free@@GLIBC_2.0
+         U fwrite@@GLIBC_2.0
+08048564 000001d5 T main
+         U malloc@@GLIBC_2.0
+         U printf@@GLIBC_2.0
+08049ab0 00000004 B service
+08049a80 00000004 B stdin@@GLIBC_2.0
+08049aa0 00000004 B stdout@@GLIBC_2.0
+         U strcpy@@GLIBC_2.0
+         U strdup@@GLIBC_2.0
+         U system@@GLIBC_2.0
