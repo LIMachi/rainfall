@@ -1,0 +1,25 @@
+following the de-compilation, we tried:
+
+`bonus0@RainFall:~$ ./bonus0
+ -
+01234567890123456789AAAABBBBCCCCDDDDEEEEFFFF
+ -
+01234567890123456789aaaabbbbccccddddeeeeffff
+0123456789012345678901234567890123456789 01234567890123456789
+Segmentation fault (core dumped)`
+
+my chips are on the fact that buff1 and buff2 are right next to each other in memory, so if p() did not terminate the input with a null byte, we ended up reading buff1 twice, overflowing the main buffer:
+
+to test this theory we will construct 2 buffers with a clear distinction:
+
+`bonus0@RainFall:~$ ./bonus0
+ -
+abcdefghijklmnopqrstuvwxyz
+ -
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstABCDEFGHIJKLMNOPQRST ABCDEFGHIJKLMNOPQRST
+Segmentation fault (core dumped)`
+
+I wasn't that far (buff2 got read twice, not buff1, silly me :) )
+
+time to use gdb to see exactly what can be done with this
