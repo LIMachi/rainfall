@@ -23,3 +23,16 @@ Segmentation fault (core dumped)`
 I wasn't that far (buff2 got read twice, not buff1, silly me :) )
 
 time to use gdb to see exactly what can be done with this
+
+see gdb and payload_asm
+
+so our payload (asm) is only 16 bytes
+we have 4 bytes to spare for the first string (will be padded)
+the second string has 9 bytes to spare at the beginning, then 4 for the eip smashing, and 7 more
+we will use the first 7 bytes for /bin/sh
+the 8th will be changed by our payload to null terminate /bin/sh
+the 9th will be padding
+the 10th to 13th will point to the main buffer where our 2 strings got concatenated
+the 14th to the 21st characters will be padding to trigger the smash
+
+solution to input our 2 payload and get a responsive shell after: https://unix.stackexchange.com/questions/620561/keep-pipe-open-stdin-in-connected-to-terminal-after-pipe
