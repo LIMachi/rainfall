@@ -237,3 +237,5 @@ x/5i 0xbffff6f6
 note: at some point we end in unknown territory: 0xb7e59f8a
 
 you know what? f this, we obviously went in the wrong direction, let's find a new angle of attack
+
+0xbfffe670 is the position of the big buffer of p, which is not cleared between calls, maybe I can store/call the payload here instead
