@@ -36,3 +36,11 @@ the 10th to 13th will point to the main buffer where our 2 strings got concatena
 the 14th to the 21st characters will be padding to trigger the smash
 
 solution to input our 2 payload and get a responsive shell after: https://unix.stackexchange.com/questions/620561/keep-pipe-open-stdin-in-connected-to-terminal-after-pipe
+
+after multiple tries (see gdb), we still can't make it work (because for some reason, our memory keeps being messed up when system is called)
+so we decided to stop wasting time (we spent almost 4 hours trying to understand why it didn't work, while checking the memory and changing the payload)
+if we pay attention to how the first and second input are used by function pp, we are guaranteed that only the first 20 chars of the first input will be copied (strcpy of a strncpy of 20 chars, strcpy will hit a zero because buff2 is unitialized, filled with zero and right after buff1)
+we can then input up to 4096 chars as the first input, and when we input our second string it will override the first 20 characters of t inside p
+so instead of having our exploit inside the first input and "/bin/sh" at the start of our second input, we can make a single payload very far inside the first input, and have the second input point to it (and hopefully we will find a position in memory that does not get messed up by system)
+so our first payload will be: <padding * size><asm>/bin/sh
+got it working (on the first try of the new script)
