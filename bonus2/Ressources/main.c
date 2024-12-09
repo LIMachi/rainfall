@@ -24,8 +24,8 @@ int greetuser(char *user) {
 }
 
 int main(int argc, char **argv) {
-	char cpy[76];
-	char buff[76];
+	char cpy[80]; //note: the spacing in the disassembly suggest a maximum size of 80
+	char buff[80]; //same as above
 	char *env_lang;
 
 	if (argc != 3)
@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
 	memset(buff, 0, sizeof(buff)); //inline
 	strncpy(buff, argv[1], 40); //safe
 	strncpy(&buff[40], argv[2], 32); //safe (the buffer seem to be big enough to contain 40+32 bytes, and it was even initialized with 0)
+	//weird thing is, since we copy at buff[40], if the first arg is not long enough to override all the \0, we won't see the second arg
 
 	env_lang = getenv("LANG");
 	if (env_lang != NULL) {
