@@ -1,0 +1,8 @@
+I almost lost some time searching for the target of this last exercise, thankfully the subject clearly states in the bonus that the final user is "end" (so we need to get /home/user/end/.pass)
+so the exec expect an arg that is a number (since it uses atoi) but then uses this same arg to compare with the buffer that contains our password
+I'm pretty sure the solution lies in the fact that atoi return 0 when an error occurs, so inputing a null string would result in
+buffer[atoi(argv[1])] = '\0'
+setting the very first byte of our buffer to 0
+meaning that strcmp would match our input "" against ""
+this seems so easy in comparison to all the other bonuses 0_o
+... it worked XD
