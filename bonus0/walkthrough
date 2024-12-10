@@ -1,3 +1,16 @@
+(more explanations in Ressources)
+
+look at gdb to see how far we went... but not in the correct direction :)
+to explain it in simple terms:
+we have two buffer of 20 chars populated by a function that uses strncpy(buff, input, 20),
+but strncpy does not guarantee a null termination if input length >= 20 (man strncpy)
+so we won't overflow the buffers of 20 chars themselves, but the strcat of function pp might go way past the expected 42 characters (including '\0')
+resulting in an overflow of the main buffer (size 54)
+what we missed the first time is that even if we smash the stack of main, some parts of the stack will still be used by system/execve
+so the trick was to store our asm inside the 'temporary'(tm) buffer of the function p (which is of a whooping size of 4096 bytes!)
+we can input a long string as our first payload, this way even if p reuses the first 21 bytes four our second payload, the first payload is still safe and usable latter
+(see gdb, script.c and payload_asm.asm for more details)
+
 scp -P 4242 payload_b0a payload_b0b bonus0@192.168.56.102:/tmp
 f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
 

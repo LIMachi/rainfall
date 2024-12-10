@@ -1,6 +1,14 @@
+(more explanations in Ressources)
+
+this level is almost identical to level3, the only real changes are the use of printf in a sub-function and the check against 0x1025544
+using the same steps as level3, we found the correct position of our string (arg 12 of printf) and the address of m (0x8049810),
+and because 0x1025544 is way to big a size for our input (which is limited to 0x200), we will use one of the features of printf:
+%<width><format> you can set a width for a format so that printf will try to pad with spaces/zeroes (based on format or other options) so that the output is of the requested size
+the final payload is: <address>%16930112c%12n\n, we use %c as the padder, as the first arg of printf is printable (0x200), 16930112 is 0x1025544 - 4
+
 scp -P 4242 payload level4@192.168.56.102:/tmp/payload4
 b209ea91ad69ef36f2cf0fcbbc24c739fd10464cf545b20bea8572ebdc3c36fa
 
 cat /tmp/payload4 | ./level4
 
-(wait that all the characters have been printed)
+(wait that all the characters have been printed, can take a while)

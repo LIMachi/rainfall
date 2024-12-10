@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 //this seem almost identical to level3 0_o
 //we have an unsafe usage of printf, and once again we need to change a global variable

@@ -1,2 +1,9 @@
+this one was way too simple to be the last bonus XD
+(see tests and source)
+simply put: we need to match an unknown string (our password) with the first arg of bonus3,
+and this first arg is also used to get the length of the password that will be used for the match
+inputting a null string results in comparing the null string with a string of length 0
+(which is valid)
+
 ./bonus3 ""
 cat /home/user/end/.pass

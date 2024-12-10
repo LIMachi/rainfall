@@ -27,12 +27,12 @@ int main(int argc, char **argv) {
 	unknown_t *u0;
 	unknown_t *u1;
 
-	u0 = malloc(sizeof(unknown_t)); //8 since int and pointers are of size 4 on 32 bit machines
+	u0 = (unknown_t *)malloc(sizeof(unknown_t)); //8 since int and pointers are of size 4 on 32 bit machines
 	u0->i = 1;
-	u0->p = malloc(8);
-	u1 = malloc(sizeof(unknown_t));
+	u0->p = (char *)malloc(8);
+	u1 = (unknown_t *)malloc(sizeof(unknown_t));
 	u1->i = 2;
-	u1->p = malloc(8);
+	u1->p = (char *)malloc(8);
 	strcpy(u0->p, argv[1]);
 	strcpy(u1->p, argv[2]);
 	fgets(c, 68, fopen("/home/user/level8/.pass", "r"));

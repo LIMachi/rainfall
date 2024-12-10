@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     if (atoi(argv[1]) != 423)
         fwrite("No !", 1, 5, stderr);
     else {
-        char* shell = strdup("/bin/sh");
+        char *shell = strdup("/bin/sh");
         int gid = getegid(); //effective group id of the calling process
         int uid = geteuid(); //effective user id of the calling process
         setresgid(gid, gid, gid); //set the real gid, effective gid and sugid of the process

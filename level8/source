@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 //using the output of hexray we have something that almost makes sense
 //(except the 3 sizes of buffers, they all are next to each other so it might be a single buffer of size 128 matching the fgets? and the extra size might be because of padding)
@@ -9,7 +10,7 @@
 char *service; //most of the disassemblers say this is an int, but the only 2 function using it expect a pointer (strdup is used, so most probably a char pointer)
 char *auth;
 
-void main() {
+int main() {
 	char buff[128]; //ebp - 136
 	//v5 becomes buff + 5, ebp - 131
 	//v6 becomes buff + 7, ebp - 129
@@ -19,7 +20,7 @@ void main() {
 			break;
 		if (!memcmp(buff, "auth ", 5)) //note: most of the other disassemblers have a loop there, so memcmp might have been inlined
 		{
-			auth = malloc(4); //why 4? (we obviously will overflow with the strcpy)
+			auth = (char *)malloc(4); //why 4? (we obviously will overflow with the strcpy)
 			*auth = 0; //we initialize the first char of auth to 0? ('\0')
 			if (strlen(buff + 5) <= 30)
 				strcpy(auth, buff + 5); //heh? (angr and binary ninja say the same)

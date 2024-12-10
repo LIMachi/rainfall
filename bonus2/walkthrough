@@ -1,3 +1,13 @@
+(more explanations in Ressources)
+
+this time we have an exec that seem to greet the first and second arg using 3 different language based on the LANG env variable
+(either greet in dutch, in finnish or in english by default)
+tbh, we ended up chasing the wrong goose again, just like in bonus0 (see tests)
+but in the end, thanks to an extra script (env.c), we managed to pass our payload in 2 parts:
+one in the LANG (see source, only the first 2 bytes are used) after the language
+the second is the second arg of bonus2 (the first arg is only of size 40 to get our second arg to be used)
+(see source, tests, env.c, script.c, payload_asm.asm)
+
 scp -P 4242 payload_b2 payload_fi payload_nl bonus2@192.168.56.102:/tmp
 579bd19263eb8655e4cf7b742d75edf8c38226925d78db8163506f5191825245
 

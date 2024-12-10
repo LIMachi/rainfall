@@ -1,5 +1,7 @@
-(more explanations in Ressources/tests)
+(more explanations in Ressources)
+
+after decompiling we found that the first arg is passed to an atoi,
+and the result tested against 423 to get access to a shell with the correct wrights
 
 ./level0 423
 cat /home/user/level1/.pass
-exit

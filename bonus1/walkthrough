@@ -1,2 +1,11 @@
+(more explanations in Ressources)
+
+after decompiling we see that the exec expects 2 parameters, and the first will be used to get the size of our second parameter.
+at first glance this seem safe since the first parameter is tested to be <= 9, but this actually exploitable because of how negative numbers work in computers
+the memcpy expect the size of the second arg to be 4 times the first arg
+by doing some maths and binary manipulation (see tests), we find that -2147483637 * 4 == 44
+by doing that, (since i is declared right after buff), we can use the 41st to 44th character of our second input to set i to 0x574f4c46
+and 0x574f4c46 is FLOW in ascii
+
 ./bonus1 -2147483637 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFLOW
 cat /home/user/bonus2/.pass

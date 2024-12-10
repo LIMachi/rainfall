@@ -1,3 +1,17 @@
+(more explanations in Ressources)
+
+a printf exploit, again. this time it will be harder, as we don't need to modify a global variable,
+but something more obscure: the plt (procedure linkage table) and got (global offset table)
+
+we can see that exit is called right after printf, so we can't just smash the stack to point ret to 'o'
+in objdump and gdb, we can see that we aren't using the exit interrupt (eax 1, int 0x80) but a call to the exit function in section plt
+searching what plt is we discover that this is a writable section (as opposed to the text are where our code is) that function like a table
+to access common function that might comme from other libraries (the exit function commes from 'unistd')
+so when can use the same trick as level3 and level4, so instead of modifying the global m,
+we will change the location of exit in plt to point to 'o' instead
+objdump --dynamic-reloc allows us to find the location of exit in plt
+our final payload will look like: <exit_plt_address>%<o_address>c%4$n\n
+
 scp -P 4242 payload level5@192.168.56.102:/tmp/payload5
 0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
 

@@ -1,4 +1,6 @@
 #include <string.h>
+#include <stdio.h>
+#include <unistd.h>
 
 //dogbolt: angr for the offsets, ghidra and hex-rays for the use of functions and guesses of buffer sizes
 
@@ -19,7 +21,7 @@ char* pp(char* buff) {
 	p(buff2, " - ");
 	strcpy(buff, buff1); //if the input was 20 or more characters, strcpy might not find a '\0' right after the 20th character depending on the state of the memory, potentially unsafe
 	buff[strlen(buff)] = ' '; //same danger as above
-	return strcat(buff2); //same danger as above (note that in theory the maximum size of the string should be 42: 20 chars of the first input, a space character, 20 chars of the second input and a terminating null)
+	return strcat(buff, buff2); //same danger as above (note that in theory the maximum size of the string should be 42: 20 chars of the first input, a space character, 20 chars of the second input and a terminating null)
 }
 
 int main() {

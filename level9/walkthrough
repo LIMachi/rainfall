@@ -1,3 +1,16 @@
+(more explanations in Ressources)
+
+this time the asm (once decompiled by dogbolt) looks like cpp, not c.
+after a LOT of searching with gdb (see gdb), we found how objects store their methods in cpp
+(we can see objects as structures where the first element is actually a pointer to an array of pointers to functions)
+so the very last operation (the add between n2 and n1) can be overwritten by argv[1] when the annotation of n1 is set
+(unsafe memcpy of the size of argv[1] where annotation is of fixed size 104)
+so we will construct a payload so that:
+it replaces the pointer to the array of methods with a pointer that points inside our payload
+this pointer will be dereferenced to get to operator+ by the exec, so the first address of our payload is actually another
+redirection to our payload, and then our asm is executed to run an execve syscall
+(see script.c and payload_asm.asm)
+
 scp -P 4242 payload level9@192.168.56.102:/tmp/payload9
 c542e581c5ba5162a85f767996e3247ed619ef6c6f7b76a59435545dc6259f8a
 

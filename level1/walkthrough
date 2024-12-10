@@ -1,4 +1,13 @@
+(more explanations in Ressources)
+
+the decompiled code showed a vulnerability because we have a gets
+(function that retrieves input until EOF, New Line, etc...)
+that stores its result inside a buffer of size 0x44 (68 bytes)
+thanks to gdb, we found that inputing 80 characters overwrote the stack to the point of corrupting
+the return of main (the instruction pointer is popped from the stack when we execute a 'ret')
+
+we just need to input 76 padding characters first, then put (in little endian) the address we want to access at the end of main (the function 'run')
+
 python -c "print('B'*76 + '\x44\x84\x04\x08')" > /tmp/test
 cat /tmp/test - | ./level1
 cat /home/user/level2/.pass
-exit

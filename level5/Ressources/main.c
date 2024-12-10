@@ -24,6 +24,6 @@ void n() {
     exit(1);
 }
 
-void main() {
+int main() {
     n();
 }

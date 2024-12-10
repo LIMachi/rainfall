@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 //dogbolt used: angr, binaryninja, dewolf, ghidra and hex-rays
 

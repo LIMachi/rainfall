@@ -1,3 +1,17 @@
+(more explanations in Ressources)
+
+here we have a reasonable usage of fgets, but a dumb usage of un-sanitized string as the first arg of printf
+we need to set the global m to 0x40(64) and printf can do that thanks to the option %n
+(stores the current size of the output of printf inside a pointer to an int)
+so if we can find the address of m and call %n at the 64th character of printf, we should be good
+(see Ressources/gdb)
+thanks to a simple technique to get the address of our input relative to printf
+(we used a bunch of %p until we found the same address as the one given by gdb)
+we can now construct a payload of the form:
+<adress of m><60 padding>%4$n
+(we found that our string is accessible as the 4th parameter of printf, so we can use the first 4 character of our
+string as the little endian address of m, pad with 60 characters to get a total of 64 chars, and finally call %n on the 4th parameter)
+
 scp -P 4242 payload level3@192.168.56.102:/tmp/payload3
 492deb0e7d14c4b5695173cca843c4384fe52d0857c2b0718e1a521a4d33ec02
 

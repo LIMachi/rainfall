@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 //we used a mix ouf outputs from dogbolt to derive this main
 //we can see that this time instead of the unsafe gets, fgets is used with a size matching the buffer (note: dogbolt usually fails to calculate the accurate size of the buffer, but for now we trust it)

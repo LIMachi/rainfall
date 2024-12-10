@@ -1,0 +1,9 @@
+(more explanations in Ressources)
+
+after decompiling we can see that there is a few malloc and dereferencing involved in this exec, and that argv[1] and argv[2] are un-safely copied in buffers of size 8
+after using gdb to find the offset of our first arg, we managed to get argv[2] to be copied to the overflow of argv[1] instead of u1->p
+we are now faced with an issue: our password is right AFTER our overflow, but we want to hack eip to point to m (so that c will be printed)
+after some time we did realize that the puts() at the end can be replaced with the m function using a plt/got attack just like in level5
+the idea is simple: our first payload overflows and puts the plt address of puts at the position of u1->p, then argv[2] will contain the address of m
+
+./level7 $(python -c 'print "B"*20+"\x28\x99\x04\x08"') $(python -c 'print "\xf4\x84\x04\x08"')
