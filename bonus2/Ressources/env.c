@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-//scp -P 4242 env.c bonus2@192.168.56.102:/tmp
+//scp -P 4242 env.c bonus2@192.168.56.105:/tmp
 //579bd19263eb8655e4cf7b742d75edf8c38226925d78db8163506f5191825245
 //gcc /tmp/env.c -o /tmp/env
 

